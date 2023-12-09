@@ -39,11 +39,60 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
+const express = require("express");
+const bodyParser = require("body-parser");
+const PORT = 3000;
 const app = express();
 
 app.use(bodyParser.json());
+var todos = [];
 
-module.exports = app;
+function returnTodos(req, res) {
+  res.status(200).send(todos);
+}
+
+function handleSingleTodo(req, res) {
+  var id = parseInt(req.params.id);
+  var todo = todos.find((todo) => todo.id == id);
+  res.status(200).send(todo);
+}
+
+function addNewTodo(req, res) {
+  var todo = req.body;
+  todo.id = todos.length + 1;
+  todos.push(todo);
+  res.status(201).send("Item Added Successfully");
+}
+
+function updateTodo(req, res) {
+  var id = parseInt(req.params.id);
+  var todo = todos.find((todo) => todo.id == id);
+  if (todo) {
+    todo.title = req.body.title;
+    todo.completed = req.body.completed;
+    todo.description = req.body.description;
+    res.status(200).send("Updated");
+  } else {
+    res.status(401).send("Todo Doesn't Exist");
+  }
+}
+
+function deleteTodo(req, res) {
+  var id = parseInt(req.params.id);
+  var todo = todos.find((todo) => todo.id == id);
+  if (todo) {
+    todos = todos.filter((todo) => todo.id != id);
+    res.status(200).send("Deleted");
+  } else {
+    res.status(401).send("Todo Doesn't Exist");
+  }
+}
+
+app.get("/todos", returnTodos);
+app.get("/todos/:id", handleSingleTodo);
+app.post("/todos", addNewTodo);
+app.put("/todos/:id", updateTodo);
+app.delete("/todos/:id", deleteTodo);
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`);
+});
